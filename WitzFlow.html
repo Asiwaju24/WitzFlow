@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WitzFlow — Academic Workflow Automation for Institutions</title>
+  <meta name="description" content="WitzFlow automates academic operations — AI grading, QR attendance, plagiarism detection, and institutional analytics. Built for African tertiary institutions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── RESET ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ── TOKENS ────────────────────────────────────────────── */
+    :root {
+      --ink:        #0B1220;
+      --ink-muted:  #3D4A5C;
+      --ink-faint:  #7A8899;
+      --surface:    #F6F8FA;
+      --surface-2:  #EDF0F5;
+      --white:      #FFFFFF;
+      --accent:     #1447E6;
+      --accent-2:   #0E38B1;
+      --accent-glow:#3B6FF6;
+      --green:      #0B6E4F;
+      --green-light:#D1FAE5;
+      --amber:      #92400E;
+      --amber-light:#FEF3C7;
+      --red:        #991B1B;
+      --red-light:  #FEE2E2;
+      --grid-line:  rgba(20, 71, 230, 0.08);
+      --grid-line-strong: rgba(20, 71, 230, 0.15);
+      --border:     #D8DEE8;
+      --radius:     8px;
+      --radius-lg:  14px;
+      --font-display: 'Sora', sans-serif;
+      --font-body:    'Inter', sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+      --shadow-sm: 0 1px 4px rgba(11,18,32,0.08);
+      --shadow-md: 0 4px 16px rgba(11,18,32,0.10);
+      --shadow-lg: 0 12px 40px rgba(11,18,32,0.13);
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--white);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BACKGROUND UTILITY ───────────────────────────── */
+    .grid-bg {
+      background-color: var(--white);
+      background-image:
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .grid-bg-strong {
+      background-color: var(--surface);
+      background-image:
+        linear-gradient(var(--grid-line-strong) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line-strong) 1px, transparent 1px),
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 160px 160px, 160px 160px, 40px 40px, 40px 40px;
+    }
+
+    /* row-header style accent lines every 4 cells */
+    .grid-cols {
+      position: relative;
+    }
+    .grid-cols::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(90deg, rgba(20,71,230,0.06) 40px, transparent 40px);
+      background-size: 160px 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAVBAR ────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%;
+      height: 64px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-display);
+      font-size: 1.25rem; font-weight: 700;
+      color: var(--ink); text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 34px; height: 34px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem; font-weight: 600;
+      color: #fff; letter-spacing: -0.5px;
+    }
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--ink-muted); text-decoration: none;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    .nav-cta {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .btn-ghost {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--ink-muted); text-decoration: none;
+      padding: 8px 16px; border-radius: var(--radius);
+      transition: background .2s, color .2s;
+    }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+    .btn-primary {
+      font-size: 0.875rem; font-weight: 600;
+      color: #fff; text-decoration: none;
+      background: var(--accent);
+      padding: 9px 20px; border-radius: var(--radius);
+      border: none; cursor: pointer;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      font-family: var(--font-body);
+    }
+    .btn-primary:hover {
+      background: var(--accent-2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(20,71,230,0.3);
+    }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; }
+
+    /* ── HERO ──────────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      padding: 120px 5% 80px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Spreadsheet grid hero background */
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-color: var(--white);
+      background-image:
+        linear-gradient(rgba(20,71,230,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20,71,230,0.07) 1px, transparent 1px),
+        linear-gradient(rgba(20,71,230,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20,71,230,0.04) 1px, transparent 1px);
+      background-size: 120px 48px, 120px 48px, 40px 48px, 40px 48px;
+      z-index: 0;
+    }
+
+    /* Row-header strip on the left — like a spreadsheet row numbers column */
+    #hero::after {
+      content: '';
+      position: absolute; top: 0; left: 0; bottom: 0; width: 40px;
+      background: linear-gradient(180deg, rgba(20,71,230,0.05) 0%, rgba(20,71,230,0.02) 100%);
+      border-right: 1px solid rgba(20,71,230,0.12);
+      z-index: 1;
+    }
+
+    /* Fade gradient at bottom of hero grid */
+    .hero-fade {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: linear-gradient(to bottom, transparent, var(--white));
+      z-index: 2;
+    }
+
+    .hero-content { position: relative; z-index: 3; max-width: 820px; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+      color: var(--accent);
+      background: rgba(20,71,230,0.07);
+      border: 1px solid rgba(20,71,230,0.2);
+      padding: 6px 14px; border-radius: 100px;
+      margin-bottom: 28px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5.5vw, 4rem);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 24px;
+    }
+    .hero-headline em {
+      font-style: normal;
+      color: var(--accent);
+      position: relative;
+    }
+    .hero-headline em::after {
+      content: '';
+      position: absolute; bottom: 2px; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-glow));
+      border-radius: 2px;
+      opacity: 0.4;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem; color: var(--ink-muted);
+      max-width: 580px; margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; flex-wrap: wrap; margin-bottom: 56px;
+    }
+
+    .btn-hero {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.95rem; font-weight: 600;
+      padding: 13px 28px; border-radius: var(--radius);
+      text-decoration: none; border: none; cursor: pointer;
+      font-family: var(--font-body);
+      transition: all .2s;
+    }
+    .btn-hero-primary {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 4px 20px rgba(20,71,230,0.25);
+    }
+    .btn-hero-primary:hover {
+      background: var(--accent-2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(20,71,230,0.35);
+    }
+    .btn-hero-secondary {
+      background: var(--white); color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+    .btn-hero-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    /* ── SPREADSHEET HERO MOCKUP ───────────────────────────── */
+    .hero-mockup {
+      width: 100%; max-width: 860px;
+      margin: 0 auto;
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(11,18,32,0.14), 0 1px 0 rgba(255,255,255,0.8) inset;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: var(--white);
+    }
+
+    .sheet-toolbar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 16px;
+      background: #F0F3F8;
+      border-bottom: 1px solid var(--border);
+    }
+    .sheet-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .sheet-dot.r { background: #FF5F56; }
+    .sheet-dot.y { background: #FEBC2E; }
+    .sheet-dot.g { background: #28C840; }
+    .sheet-title {
+      flex: 1; text-align: center;
+      font-family: var(--font-body);
+      font-size: 0.8rem; font-weight: 500;
+      color: var(--ink-muted);
+    }
+
+    .sheet-tabs {
+      display: flex;
+      background: #F0F3F8;
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      gap: 4px;
+    }
+    .sheet-tab {
+      font-family: var(--font-body);
+      font-size: 0.75rem; font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px 6px 0 0;
+      color: var(--ink-faint);
+      cursor: pointer;
+    }
+    .sheet-tab.active {
+      background: var(--white);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-bottom-color: var(--white);
+      margin-bottom: -1px;
+    }
+
+    .sheet-table { width: 100%; border-collapse: collapse; }
+    .sheet-table th {
+      background: #F0F3F8;
+      color: var(--ink-faint);
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .sheet-table th:first-child { width: 36px; text-align: center; background: #E8ECF3; }
+    .sheet-table td {
+      padding: 7px 12px;
+      border: 1px solid #E8EDF3;
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+    .sheet-table td:first-child {
+      background: #F0F3F8;
+      color: var(--ink-faint);
+      text-align: center;
+      font-size: 0.68rem;
+      border-color: var(--border);
+    }
+    .sheet-table tr:hover td:not(:first-child) { background: rgba(20,71,230,0.03); }
+
+    .sheet-selected { background: rgba(20,71,230,0.07) !important; color: var(--accent) !important; font-weight: 600; }
+    .sheet-selected-row td:not(:first-child) { background: rgba(20,71,230,0.04) !important; }
+
+    .tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 0.68rem; font-weight: 600;
+      font-family: var(--font-body);
+    }
+    .tag.green { background: var(--green-light); color: var(--green); }
+    .tag.amber { background: var(--amber-light); color: var(--amber); }
+    .tag.red   { background: var(--red-light); color: var(--red); }
+    .tag.blue  { background: rgba(20,71,230,0.1); color: var(--accent); }
+
+    .sheet-formula-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 16px;
+      background: #F8F9FC;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.75rem;
+    }
+    .formula-cell {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+      min-width: 48px; text-align: center;
+    }
+    .formula-input {
+      flex: 1;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--ink-muted);
+    }
+
+    /* ── SECTION BASE ──────────────────────────────────────── */
+    section { padding: 96px 5%; }
+    .section-inner { max-width: 1140px; margin: 0 auto; }
+
+    .section-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 800; line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      margin-bottom: 18px;
+    }
+    .section-title em { font-style: normal; color: var(--accent); }
+    .section-lead {
+      font-size: 1rem; color: var(--ink-muted);
+      max-width: 560px; line-height: 1.75;
+    }
+
+    /* ── FEATURES ──────────────────────────────────────────── */
+    #features { background: var(--white); position: relative; }
+    #features .section-inner { position: relative; z-index: 1; }
+
+    /* Subtle column-guide lines behind features */
+    #features::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: linear-gradient(90deg, rgba(20,71,230,0.04) 1px, transparent 1px);
+      background-size: 25% 100%;
+      pointer-events: none;
+    }
+
+    .features-header { margin-bottom: 60px; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5px;
+      background: var(--border);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--white);
+      padding: 32px 28px;
+      transition: background .2s;
+      position: relative;
+    }
+    .feature-card:hover { background: #FAFBFF; }
+
+    /* Row-number style label */
+    .feature-row-label {
+      position: absolute; top: 0; right: 0;
+      font-family: var(--font-mono);
+      font-size: 0.62rem; font-weight: 600;
+      color: var(--ink-faint);
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 0 0 0 6px;
+    }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: rgba(20,71,230,0.08);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+      border: 1px solid rgba(20,71,230,0.12);
+    }
+    .feature-name {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 10px;
+    }
+    .feature-desc {
+      font-size: 0.875rem; color: var(--ink-muted);
+      line-height: 1.65;
+    }
+    .feature-tag {
+      display: inline-block;
+      margin-top: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem; font-weight: 600;
+      color: var(--accent);
+      background: rgba(20,71,230,0.07);
+      padding: 3px 9px; border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Large feature spanning 2 cols */
+    .feature-card.wide { grid-column: span 2; }
+    .feature-card.wide .feature-content { display: flex; gap: 32px; align-items: flex-start; }
+    .feature-card.wide .feature-text { flex: 1; }
+    .feature-card.wide .feature-visual { flex: 1; }
+
+    .ai-grade-demo {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      font-size: 0.8rem;
+    }
+    .ai-grade-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ai-grade-row:last-child { border-bottom: none; }
+    .ai-grade-label { color: var(--ink-muted); font-size: 0.75rem; }
+    .ai-grade-bar { flex: 1; margin: 0 12px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .ai-grade-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-glow)); }
+    .ai-grade-score { font-family: var(--font-mono); font-weight: 600; color: var(--ink); font-size: 0.75rem; min-width: 36px; text-align: right; }
+
+    /* ── HOW IT WORKS ──────────────────────────────────────── */
+    #how { background: var(--surface); position: relative; }
+    #how::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(20,71,230,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20,71,230,0.06) 1px, transparent 1px);
+      background-size: 40px 48px;
+      pointer-events: none;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative; z-index: 1;
+      margin-top: 56px;
+    }
+
+    .how-connector {
+      position: absolute; top: 48px; left: 12.5%; right: 12.5%;
+      height: 1.5px;
+      background: repeating-linear-gradient(90deg, var(--accent) 0, var(--accent) 8px, transparent 8px, transparent 16px);
+      opacity: 0.3;
+      z-index: 0;
+    }
+
+    .how-step {
+      padding: 32px 28px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      position: relative;
+    }
+    .how-step:not(:last-child) { border-right: none; }
+    .how-step:first-child { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+    .how-step:last-child  { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+
+    .how-step-num {
+      font-family: var(--font-mono);
+      font-size: 0.68rem; font-weight: 700;
+      color: var(--accent);
+      background: rgba(20,71,230,0.08);
+      border: 1px solid rgba(20,71,230,0.15);
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .how-step-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .how-step-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 10px;
+    }
+    .how-step-desc { font-size: 0.82rem; color: var(--ink-muted); line-height: 1.65; }
+
+    /* ── FOR INSTITUTIONS ──────────────────────────────────── */
+    #institutions { background: var(--white); }
+
+    .inst-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5px;
+      background: var(--border);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-top: 56px;
+    }
+
+    .inst-card {
+      background: var(--white);
+      padding: 36px 32px;
+      display: flex; gap: 24px;
+      transition: background .2s;
+    }
+    .inst-card:hover { background: #FAFBFF; }
+
+    .inst-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+      width: 56px; height: 56px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface);
+    }
+
+    .inst-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--ink); margin-bottom: 8px;
+    }
+    .inst-desc { font-size: 0.875rem; color: var(--ink-muted); line-height: 1.65; }
+
+    .inst-benefits {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+    }
+    .inst-benefit {
+      font-size: 0.7rem; font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      background: rgba(20,71,230,0.07);
+      padding: 3px 9px; border-radius: 4px;
+    }
+
+    /* ── PRICING ───────────────────────────────────────────── */
+    #pricing { background: var(--surface); position: relative; }
+    #pricing::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(20,71,230,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20,71,230,0.05) 1px, transparent 1px);
+      background-size: 40px 48px;
+      pointer-events: none;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 56px;
+      position: relative; z-index: 1;
+    }
+
+    .price-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 30px;
+      position: relative;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .price-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .price-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), var(--shadow-md);
+    }
+
+    .price-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 0.65rem; font-weight: 700;
+      color: var(--white); background: var(--accent);
+      padding: 4px 14px; border-radius: 100px;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .price-tier {
+      font-family: var(--font-mono);
+      font-size: 0.72rem; font-weight: 600;
+      color: var(--ink-faint); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .price-amount {
+      font-family: var(--font-display);
+      font-size: 2.4rem; font-weight: 800;
+      color: var(--ink); line-height: 1;
+      margin-bottom: 6px;
+    }
+    .price-amount span { font-size: 1rem; font-weight: 500; color: var(--ink-faint); }
+    .price-desc { font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 28px; }
+
+    .price-divider {
+      height: 1px; background: var(--border);
+      margin-bottom: 24px;
+    }
+
+    .price-features { list-style: none; margin-bottom: 32px; }
+    .price-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.85rem; color: var(--ink-muted);
+      padding: 7px 0; border-bottom: 1px solid var(--surface);
+    }
+    .price-features li:last-child { border-bottom: none; }
+    .price-features li::before {
+      content: '✓';
+      color: var(--green); font-weight: 700;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .price-features li.dim { color: var(--ink-faint); }
+    .price-features li.dim::before { color: var(--border); }
+
+    .price-cta {
+      display: block; width: 100%;
+      padding: 12px 20px; border-radius: var(--radius);
+      text-align: center; font-weight: 600; font-size: 0.9rem;
+      text-decoration: none; cursor: pointer;
+      border: none; font-family: var(--font-body);
+      transition: all .2s;
+    }
+    .price-cta.primary {
+      background: var(--accent); color: #fff;
+    }
+    .price-cta.primary:hover { background: var(--accent-2); }
+    .price-cta.secondary {
+      background: var(--surface); color: var(--ink);
+      border: 1.5px solid var(--border);
+    }
+    .price-cta.secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── ABOUT ─────────────────────────────────────────────── */
+    #about { background: var(--white); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+      margin-top: 56px;
+    }
+
+    .about-quote {
+      font-family: var(--font-display);
+      font-size: 1.3rem; font-weight: 700;
+      color: var(--ink); line-height: 1.5;
+      margin-bottom: 24px;
+      padding-left: 24px;
+      border-left: 4px solid var(--accent);
+    }
+    .about-quote em { font-style: italic; color: var(--accent); }
+
+    .about-bio { font-size: 0.925rem; color: var(--ink-muted); line-height: 1.8; margin-bottom: 16px; }
+
+    .about-founder-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-top: 28px;
+    }
+    .founder-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.2rem; font-weight: 700;
+      color: #fff; flex-shrink: 0;
+    }
+    .founder-name {
+      font-weight: 700; color: var(--ink); font-size: 0.95rem;
+    }
+    .founder-title { font-size: 0.8rem; color: var(--ink-faint); margin-top: 2px; }
+    .founder-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .founder-tag {
+      font-size: 0.68rem; font-weight: 600;
+      color: var(--accent);
+      background: rgba(20,71,230,0.08);
+      padding: 2px 8px; border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* Spreadsheet stat panel */
+    .about-stats {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .stats-header {
+      background: #E8EDF5;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .stats-header-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem; font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    .stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+    }
+    .stat-cell {
+      padding: 24px 20px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .stat-cell:nth-child(2n) { border-right: none; }
+    .stat-cell:nth-last-child(-n+2) { border-bottom: none; }
+
+    .stat-row-label {
+      position: absolute; top: 6px; right: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.58rem; color: var(--ink-faint);
+    }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight: 800;
+      color: var(--ink); line-height: 1; margin-bottom: 4px;
+    }
+    .stat-num span { color: var(--accent); }
+    .stat-label { font-size: 0.78rem; color: var(--ink-muted); }
+
+    /* ── CTA ───────────────────────────────────────────────── */
+    #cta {
+      background: var(--ink);
+      padding: 100px 5%;
+      position: relative; overflow: hidden;
+    }
+    #cta::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 40px 48px;
+    }
+
+    .cta-inner {
+      max-width: 680px; margin: 0 auto;
+      text-align: center; position: relative; z-index: 1;
+    }
+    .cta-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem; font-weight: 600;
+      color: var(--accent-glow); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800; color: #fff;
+      line-height: 1.15; letter-spacing: -0.025em;
+      margin-bottom: 20px;
+    }
+    .cta-title em { font-style: normal; color: var(--accent-glow); }
+    .cta-sub { font-size: 1rem; color: rgba(255,255,255,0.55); margin-bottom: 40px; }
+
+    .waitlist-form {
+      display: flex; gap: 10px; max-width: 480px; margin: 0 auto;
+    }
+    .waitlist-input {
+      flex: 1; padding: 13px 18px;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius); color: #fff;
+      font-size: 0.9rem; font-family: var(--font-body);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .waitlist-input::placeholder { color: rgba(255,255,255,0.3); }
+    .waitlist-input:focus { border-color: var(--accent-glow); }
+
+    .waitlist-btn {
+      padding: 13px 24px;
+      background: var(--accent);
+      color: #fff; border: none;
+      border-radius: var(--radius);
+      font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; font-family: var(--font-body);
+      white-space: nowrap;
+      transition: background .2s, transform .15s;
+    }
+    .waitlist-btn:hover { background: var(--accent-glow); transform: translateY(-1px); }
+
+    .waitlist-note {
+      font-size: 0.78rem; color: rgba(255,255,255,0.3);
+      margin-top: 14px;
+      font-family: var(--font-mono);
+    }
+
+    /* ── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background: var(--ink);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 64px 5% 36px;
+    }
+
+    .footer-grid {
+      max-width: 1140px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 60px; margin-bottom: 56px;
+    }
+
+    .footer-brand-name {
+      font-family: var(--font-display);
+      font-size: 1.2rem; font-weight: 700;
+      color: #fff; margin-bottom: 14px;
+    }
+    .footer-brand-name span { color: var(--accent-glow); }
+    .footer-brand-desc {
+      font-size: 0.85rem; color: rgba(255,255,255,0.4);
+      line-height: 1.7; margin-bottom: 20px;
+    }
+    .footer-socials { display: flex; gap: 10px; }
+    .footer-social {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.4); text-decoration: none;
+      font-size: 0.85rem;
+      transition: border-color .2s, color .2s;
+    }
+    .footer-social:hover { border-color: var(--accent-glow); color: var(--accent-glow); }
+
+    .footer-col-title {
+      font-size: 0.78rem; font-weight: 700;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 18px;
+      font-family: var(--font-mono);
+    }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 10px; }
+    .footer-links a {
+      font-size: 0.85rem; color: rgba(255,255,255,0.35);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.8); }
+
+    .footer-bottom {
+      max-width: 1140px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-copy { font-size: 0.8rem; color: rgba(255,255,255,0.25); }
+    .footer-product-family { display: flex; align-items: center; gap: 6px; }
+    .family-pill {
+      font-family: var(--font-mono);
+      font-size: 0.68rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 100px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.35);
+    }
+    .family-pill.active { border-color: rgba(20,71,230,0.5); color: var(--accent-glow); }
+
+    /* ── ANIMATIONS ────────────────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── MOBILE ────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .nav-links, .nav-cta .btn-ghost { display: none; }
+      .hamburger { display: flex; }
+
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card.wide { grid-column: span 1; }
+      .feature-card.wide .feature-content { flex-direction: column; }
+
+      .how-grid { grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+      .how-step { border-radius: 0 !important; border: none; }
+
+      .inst-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .waitlist-form { flex-direction: column; }
+    }
+
+    @media (max-width: 600px) {
+      .how-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-cell { border-right: none; }
+      .stat-cell:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+      .stat-cell:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVBAR ──────────────────────────────────────────────── -->
+  <nav>
+    <a href="#hero" class="nav-logo">
+      <div class="nav-logo-icon">Wf</div>
+      Witz<span>Flow</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#institutions">Institutions</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="https://witz-class.vercel.app/" class="btn-ghost" target="_blank">WitzClass ↗</a>
+      <button class="btn-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- ── HERO ────────────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="hero-content reveal">
+      <div class="hero-eyebrow">Coming Soon — Join the Waitlist</div>
+      <h1 class="hero-headline">
+        The academic<br/>
+        operations layer<br/>
+        <em>institutions are missing</em>
+      </h1>
+      <p class="hero-sub">
+        WitzFlow automates what lecturers waste hours on — grading, attendance, plagiarism checks, and weekly reports — so they can focus on teaching.
+      </p>
+      <div class="hero-actions">
+        <button class="btn-hero btn-hero-primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">
+          Join Waitlist →
+        </button>
+        <a href="#features" class="btn-hero btn-hero-secondary">See Features</a>
+      </div>
+
+      <!-- Spreadsheet mockup -->
+      <div class="hero-mockup">
+        <div class="sheet-toolbar">
+          <div class="sheet-dot r"></div>
+          <div class="sheet-dot y"></div>
+          <div class="sheet-dot g"></div>
+          <div class="sheet-title">WitzFlow — CSC 401 Grading Dashboard</div>
+        </div>
+        <div class="sheet-tabs">
+          <div class="sheet-tab active">Submissions</div>
+          <div class="sheet-tab">Attendance</div>
+          <div class="sheet-tab">Analytics</div>
+          <div class="sheet-tab">At-Risk</div>
+        </div>
+        <div class="sheet-formula-bar">
+          <div class="formula-cell">D7</div>
+          <div class="formula-input">=AI_GRADE(C7, rubric_id=&quot;CSC401-R2&quot;, anonymize=TRUE)</div>
+        </div>
+        <table class="sheet-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Student ID</th>
+              <th>Submission</th>
+              <th>AI Score</th>
+              <th>Final Score</th>
+              <th>Status</th>
+              <th>Integrity</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>STU-0041</td>
+              <td>algorithm_analysis.pdf</td>
+              <td class="sheet-selected">87 / 100</td>
+              <td>85 / 100</td>
+              <td><span class="tag green">✓ Graded</span></td>
+              <td><span class="tag green">Clean</span></td>
+              <td>2d ago</td>
+            </tr>
+            <tr class="sheet-selected-row">
+              <td>2</td>
+              <td>STU-0057</td>
+              <td>data_structures.pdf</td>
+              <td class="sheet-selected">91 / 100</td>
+              <td>91 / 100</td>
+              <td><span class="tag green">✓ Graded</span></td>
+              <td><span class="tag green">Clean</span></td>
+              <td>2d ago</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>STU-0023</td>
+              <td>os_essay.pdf</td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="tag blue">⏳ Pending</span></td>
+              <td><span class="tag amber">⚠ Review</span></td>
+              <td>1d ago</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>STU-0088</td>
+              <td>networking.pdf</td>
+              <td>44 / 100</td>
+              <td>44 / 100</td>
+              <td><span class="tag amber">⚠ Late</span></td>
+              <td><span class="tag red">🚩 Flagged</span></td>
+              <td>3h ago</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>STU-0012</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="tag red">✗ Missing</span></td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="hero-fade"></div>
+  </section>
+
+  <!-- ── FEATURES ─────────────────────────────────────────────── -->
+  <section id="features">
+    <div class="section-inner">
+      <div class="features-header reveal">
+        <p class="section-eyebrow">// features</p>
+        <h2 class="section-title">Everything academic ops<br/>needs. <em>Nothing it doesn't.</em></h2>
+        <p class="section-lead">Six automation pillars that eliminate the manual work killing lecturer productivity across African institutions.</p>
+      </div>
+
+      <div class="features-grid reveal">
+        <!-- Row 1 -->
+        <div class="feature-card">
+          <div class="feature-row-label">F01</div>
+          <div class="feature-icon">📋</div>
+          <div class="feature-name">Assignment Engine</div>
+          <p class="feature-desc">Schedule assignments to publish automatically. Deadlines enforced, late submissions flagged, reminders sent — without a single manual action from the lecturer.</p>
+          <span class="feature-tag">CELERY_BEAT</span>
+        </div>
+
+        <div class="feature-card wide">
+          <div class="feature-row-label">F02</div>
+          <div class="feature-content">
+            <div class="feature-text">
+              <div class="feature-icon">🤖</div>
+              <div class="feature-name">AI-Assisted Grading</div>
+              <p class="feature-desc">WitzFlow reads each submission against your rubric and generates a scored draft — per criterion, with written feedback. You review, adjust, and publish. Grading time drops by over 70%.</p>
+              <span class="feature-tag">GPT-4o-mini + RUBRIC ENGINE</span>
+            </div>
+            <div class="feature-visual">
+              <div class="ai-grade-demo">
+                <div style="font-family:var(--font-mono);font-size:0.65rem;color:var(--ink-faint);margin-bottom:10px;">AI Draft — STU-0041 · CSC 401 Assignment 3</div>
+                <div class="ai-grade-row">
+                  <span class="ai-grade-label">Argument Clarity</span>
+                  <div class="ai-grade-bar"><div class="ai-grade-fill" style="width:88%"></div></div>
+                  <span class="ai-grade-score">22/25</span>
+                </div>
+                <div class="ai-grade-row">
+                  <span class="ai-grade-label">Technical Accuracy</span>
+                  <div class="ai-grade-bar"><div class="ai-grade-fill" style="width:84%"></div></div>
+                  <span class="ai-grade-score">21/25</span>
+                </div>
+                <div class="ai-grade-row">
+                  <span class="ai-grade-label">References</span>
+                  <div class="ai-grade-bar"><div class="ai-grade-fill" style="width:80%"></div></div>
+                  <span class="ai-grade-score">16/20</span>
+                </div>
+                <div class="ai-grade-row">
+                  <span class="ai-grade-label">Originality</span>
+                  <div class="ai-grade-bar"><div class="ai-grade-fill" style="width:93%"></div></div>
+                  <span class="ai-grade-score">28/30</span>
+                </div>
+                <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:0.72rem;color:var(--ink-faint);">Total AI Draft</span>
+                  <span style="font-family:var(--font-mono);font-weight:700;color:var(--accent);font-size:1rem;">87 / 100</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="feature-card">
+          <div class="feature-row-label">F03</div>
+          <div class="feature-icon">📷</div>
+          <div class="feature-name">QR Attendance</div>
+          <p class="feature-desc">Lecturer opens a session, a QR code appears on the projector. Students scan once — attendance logged with timestamp. A 6-digit OTP covers low-signal classrooms.</p>
+          <span class="feature-tag">HMAC · OTP_FALLBACK</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-row-label">F04</div>
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-name">Academic Integrity</div>
+          <p class="feature-desc">Every submission is scanned for plagiarism (semantic similarity, not just exact matches) and AI-generated content. Flagged submissions surface in a dedicated review queue.</p>
+          <span class="feature-tag">SENTENCE_TRANSFORMERS</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-row-label">F05</div>
+          <div class="feature-icon">📊</div>
+          <div class="feature-name">Analytics Dashboard</div>
+          <p class="feature-desc">Grade trends, attendance rates, engagement scores, and submission patterns — all visible in one institutional dashboard updated in real time.</p>
+          <span class="feature-tag">SCIKIT-LEARN · RECHARTS</span>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="feature-card">
+          <div class="feature-row-label">F06</div>
+          <div class="feature-icon">⚠️</div>
+          <div class="feature-name">At-Risk Detection</div>
+          <p class="feature-desc">A predictive model monitors attendance, grades, late submissions, and engagement. Students drifting toward failure are flagged before it's too late to intervene.</p>
+          <span class="feature-tag">GBM_MODEL</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-row-label">F07</div>
+          <div class="feature-icon">📧</div>
+          <div class="feature-name">Weekly Reports</div>
+          <p class="feature-desc">Every Monday, WitzFlow auto-generates a PDF performance report per student — grades, attendance, feedback highlights — and delivers it to their inbox. Zero manual effort.</p>
+          <span class="feature-tag">REPORTLAB · CELERY_BEAT</span>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-row-label">F08</div>
+          <div class="feature-icon">🎭</div>
+          <div class="feature-name">Anonymous Grading</div>
+          <p class="feature-desc">Toggle anonymisation per assignment. Student names are hidden from lecturers during review — only revealed after grades are confirmed. Bias removed by design.</p>
+          <span class="feature-tag">FAIRNESS_LAYER</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ──────────────────────────────────────────── -->
+  <section id="how">
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-eyebrow">// workflow</p>
+        <h2 class="section-title">From setup to <em>automated</em><br/>in four steps</h2>
+        <p class="section-lead">WitzFlow is designed for adoption without a change-management project. One admin, one afternoon, live for the semester.</p>
+      </div>
+
+      <div class="how-grid reveal">
+        <div class="how-step">
+          <div class="how-step-num">01</div>
+          <div class="how-step-icon">🏛️</div>
+          <div class="how-step-title">Institution Registers</div>
+          <p class="how-step-desc">The admin registers the institution, sets up departments and academic year, and onboards lecturers with a unique institution code. Under 15 minutes.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">02</div>
+          <div class="how-step-icon">👨‍🏫</div>
+          <div class="how-step-title">Lecturer Configures Courses</div>
+          <p class="how-step-desc">Lecturer creates courses, builds rubrics, and enrolls students via CSV upload or join code. Assignments are scheduled for the semester in one session.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">03</div>
+          <div class="how-step-icon">🎒</div>
+          <div class="how-step-title">Students Submit & Attend</div>
+          <p class="how-step-desc">Students submit work digitally and scan QR codes to mark attendance. Every action is timestamped, tracked, and visible to the lecturer instantly.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">04</div>
+          <div class="how-step-icon">⚙️</div>
+          <div class="how-step-title">WitzFlow Handles the Rest</div>
+          <p class="how-step-desc">AI grades drafts, integrity checks run automatically, weekly reports are generated and sent, and at-risk students surface before the semester ends badly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOR INSTITUTIONS ──────────────────────────────────────── -->
+  <section id="institutions">
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-eyebrow">// target_market</p>
+        <h2 class="section-title">Built for every<br/>level of <em>institution</em></h2>
+        <p class="section-lead">From a single department trying to go digital to a multi-faculty university scaling across campuses — WitzFlow adapts.</p>
+      </div>
+
+      <div class="inst-grid reveal">
+        <div class="inst-card">
+          <div class="inst-icon">🎓</div>
+          <div>
+            <div class="inst-title">Universities & Polytechnics</div>
+            <p class="inst-desc">Multi-department support, faculty-level analytics, bulk enrollment from institutional student registers, and an admin dashboard visible to registrars and HODs.</p>
+            <div class="inst-benefits">
+              <span class="inst-benefit">MULTI_DEPT</span>
+              <span class="inst-benefit">FACULTY_ANALYTICS</span>
+              <span class="inst-benefit">REGISTRAR_VIEW</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="inst-card">
+          <div class="inst-icon">🏫</div>
+          <div>
+            <div class="inst-title">Colleges of Education</div>
+            <p class="inst-desc">Designed for the realities of Nigerian tertiary education — offline attendance fallback, low-bandwidth file uploads, and SMS-based deadline reminders where email is unreliable.</p>
+            <div class="inst-benefits">
+              <span class="inst-benefit">OFFLINE_OTP</span>
+              <span class="inst-benefit">SMS_ALERTS</span>
+              <span class="inst-benefit">LOW_BANDWIDTH</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="inst-card">
+          <div class="inst-icon">📚</div>
+          <div>
+            <div class="inst-title">Secondary Schools</div>
+            <p class="inst-desc">Subject teachers benefit from AI grading and attendance tracking even at secondary level. Simple setup, no IT department required. Works from a single laptop.</p>
+            <div class="inst-benefits">
+              <span class="inst-benefit">SIMPLE_SETUP</span>
+              <span class="inst-benefit">NO_IT_NEEDED</span>
+              <span class="inst-benefit">AI_GRADING</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="inst-card">
+          <div class="inst-icon">🏢</div>
+          <div>
+            <div class="inst-title">Corporate Training Orgs</div>
+            <p class="inst-desc">Run assessments, track completion, measure engagement, and auto-generate reports for compliance training across large employee cohorts. White-label available.</p>
+            <div class="inst-benefits">
+              <span class="inst-benefit">WHITE_LABEL</span>
+              <span class="inst-benefit">COMPLIANCE_REPORTS</span>
+              <span class="inst-benefit">BULK_COHORTS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRICING ───────────────────────────────────────────────── -->
+  <section id="pricing">
+    <div class="section-inner">
+      <div class="reveal" style="text-align:center;">
+        <p class="section-eyebrow">// pricing</p>
+        <h2 class="section-title">Scales with your<br/><em>institution's size</em></h2>
+        <p class="section-lead" style="margin:0 auto;">Transparent per-semester pricing. No surprise invoices. No per-feature unlocks.</p>
+      </div>
+
+      <div class="pricing-grid reveal">
+        <!-- Starter -->
+        <div class="price-card">
+          <div class="price-tier">Starter</div>
+          <div class="price-amount">Free<span></span></div>
+          <div class="price-desc">For individual lecturers or small departments exploring WitzFlow.</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>Up to 2 courses</li>
+            <li>Up to 60 students total</li>
+            <li>Assignment engine + QR attendance</li>
+            <li>Basic submission tracking</li>
+            <li class="dim">AI-assisted grading</li>
+            <li class="dim">Plagiarism detection</li>
+            <li class="dim">Weekly auto-reports</li>
+            <li class="dim">At-risk model</li>
+          </ul>
+          <button class="price-cta secondary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+        </div>
+
+        <!-- Institution — Featured -->
+        <div class="price-card featured">
+          <div class="price-badge">Most Popular</div>
+          <div class="price-tier">Institution</div>
+          <div class="price-amount">₦150k<span> / semester</span></div>
+          <div class="price-desc">For a full department or faculty. Includes AI grading and analytics.</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>Unlimited courses</li>
+            <li>Up to 500 students</li>
+            <li>Full assignment engine</li>
+            <li>QR attendance + OTP fallback</li>
+            <li>AI-assisted grading (all submissions)</li>
+            <li>Plagiarism + AI-content detection</li>
+            <li>Weekly auto-reports (PDF, email)</li>
+            <li>At-risk student model</li>
+          </ul>
+          <button class="price-cta primary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Join Waitlist</button>
+        </div>
+
+        <!-- Enterprise -->
+        <div class="price-card">
+          <div class="price-tier">Enterprise</div>
+          <div class="price-amount">Custom<span></span></div>
+          <div class="price-desc">For multi-faculty universities, networks of schools, or corporate training providers.</div>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>Unlimited everything</li>
+            <li>Multi-campus / multi-institution</li>
+            <li>Custom integrations (SMS, LMS, SIS)</li>
+            <li>White-label deployment</li>
+            <li>Dedicated support SLA</li>
+            <li>Institutional analytics suite</li>
+            <li>On-premise deployment option</li>
+            <li>Staff training included</li>
+          </ul>
+          <button class="price-cta secondary" onclick="document.getElementById('cta').scrollIntoView({behavior:'smooth'})">Contact Us</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ABOUT ────────────────────────────────────────────────── -->
+  <section id="about">
+    <div class="section-inner">
+      <div class="about-grid reveal">
+        <div>
+          <p class="section-eyebrow">// founder_story</p>
+          <blockquote class="about-quote">
+            "I built WitzClass to digitise assignment collection. I built WitzFlow because <em>the real problem is everything that happens after the submission.</em>"
+          </blockquote>
+          <p class="about-bio">Lecturers in Nigerian institutions manage classes of 200+ students, grade manually, track attendance on paper, and produce reports nobody reads. WitzFlow isn't a feature request — it's a response to a structural problem that wastes thousands of academic hours every semester across Africa.</p>
+          <p class="about-bio">WitzFlow is built by the same team behind WitzClass, as part of the Wizard Technology product family. The same infrastructure-first philosophy: if it doesn't solve a real problem at a Nigerian institution, it doesn't ship.</p>
+
+          <div class="about-founder-card">
+            <div class="founder-avatar">A</div>
+            <div>
+              <div class="founder-name">Olaniyan Taslim</div>
+              <div class="founder-title">Founder & CEO, Wizard Technology</div>
+              <div class="founder-tags">
+                <span class="founder-tag">Django</span>
+                <span class="founder-tag">React</span>
+                <span class="founder-tag">EdTech</span>
+                <span class="founder-tag">AI Engineering</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="about-stats">
+            <div class="stats-header">
+              <span>📊</span>
+              <span class="stats-header-title">the_problem.xlsx — Nigerian HE Sector</span>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-cell">
+                <span class="stat-row-label">A1</span>
+                <div class="stat-num">200<span>+</span></div>
+                <div class="stat-label">Average students per Nigerian university lecturer</div>
+              </div>
+              <div class="stat-cell">
+                <span class="stat-row-label">B1</span>
+                <div class="stat-num">70<span>%</span></div>
+                <div class="stat-label">Of institutions still using paper attendance</div>
+              </div>
+              <div class="stat-cell">
+                <span class="stat-row-label">A2</span>
+                <div class="stat-num">40<span>hrs</span></div>
+                <div class="stat-label">Hours per semester lost to manual grading per course</div>
+              </div>
+              <div class="stat-cell">
+                <span class="stat-row-label">B2</span>
+                <div class="stat-num">$7.7<span>B</span></div>
+                <div class="stat-label">African e-learning market size projected by 2033</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA / WAITLIST ─────────────────────────────────────────── -->
+  <section id="cta">
+    <div class="cta-inner reveal">
+      <div class="cta-label">// join_waitlist</div>
+      <h2 class="cta-title">Be first when<br/><em>WitzFlow goes live</em></h2>
+      <p class="cta-sub">Early institutions get 3 months free on the Institution plan and dedicated onboarding support.</p>
+      <div class="waitlist-form">
+        <input type="email" class="waitlist-input" placeholder="your.institution@email.com" id="waitlist-email" />
+        <button class="waitlist-btn" onclick="handleWaitlist()">Join Waitlist</button>
+      </div>
+      <div class="waitlist-note" id="waitlist-msg">No spam. No credit card. Just early access.</div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ────────────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-name">Witz<span>Flow</span></div>
+        <p class="footer-brand-desc">Academic workflow automation and analytics for African tertiary institutions. Part of the Wizard Technology product family alongside WitzClass.</p>
+        <div class="footer-socials">
+          <a href="https://github.com/Asiwaju24" class="footer-social" target="_blank">⌨</a>
+          <a href="https://x.com/OlaniyanTaslim" class="footer-social" target="_blank">𝕏</a>
+          <a href="https://www.linkedin.com/in/olaniyan-taslim-3a80212aa" class="footer-social" target="_blank">in</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how">How It Works</a></li>
+          <li><a href="#institutions">Institutions</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-links">
+          <li><a href="#about">About</a></li>
+          <li><a href="#about">Founder</a></li>
+          <li><a href="https://witz-web.vercel.app/" target="_blank">WitzClass</a></li>
+          <li><a href="#">Roadmap</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Developers</div>
+        <ul class="footer-links">
+          <li><a href="#">API Docs (coming soon)</a></li>
+          <li><a href="https://github.com/Asiwaju24" target="_blank">GitHub</a></li>
+          <li><a href="#">SDK</a></li>
+          <li><a href="#">Changelog</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 WitzFlow · Wizard Technology. All rights reserved.</div>
+      <div class="footer-product-family">
+        <span style="font-size:0.72rem;color:rgba(255,255,255,0.2);font-family:var(--font-mono);margin-right:6px;">PRODUCTS:</span>
+        <a href="https://witz-web.vercel.app/" class="family-pill" target="_blank">WitzClass</a>
+        <span class="family-pill active">WitzFlow</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Scroll reveal ─────────────────────────────────────────
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    revealEls.forEach(el => observer.observe(el));
+
+    // ── Mobile menu ───────────────────────────────────────────
+    function toggleMenu() {
+      const links = document.querySelector('.nav-links');
+      const cta = document.querySelector('.nav-cta');
+      if (links.style.display === 'flex') {
+        links.style.display = '';
+        cta.style.display = '';
+        links.style.position = '';
+      } else {
+        links.style.display = 'flex';
+        links.style.flexDirection = 'column';
+        links.style.position = 'fixed';
+        links.style.top = '64px';
+        links.style.left = '0';
+        links.style.right = '0';
+        links.style.background = 'rgba(255,255,255,0.98)';
+        links.style.padding = '20px 5%';
+        links.style.borderBottom = '1px solid var(--border)';
+        links.style.zIndex = '99';
+        links.style.gap = '1rem';
+        links.style.backdropFilter = 'blur(12px)';
+      }
+    }
+
+    // ── Waitlist handler ──────────────────────────────────────
+    function handleWaitlist() {
+      const email = document.getElementById('waitlist-email').value.trim();
+      const msg = document.getElementById('waitlist-msg');
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!email) {
+        msg.textContent = '⚠ Please enter your email address.';
+        msg.style.color = '#FEBC2E';
+        return;
+      }
+      if (!emailRe.test(email)) {
+        msg.textContent = '⚠ Please enter a valid email address.';
+        msg.style.color = '#FEBC2E';
+        return;
+      }
+
+      // Simulate submission
+      const btn = document.querySelector('.waitlist-btn');
+      btn.textContent = 'Adding...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        document.getElementById('waitlist-email').value = '';
+        msg.textContent = '✓ You\'re on the list! We\'ll reach out before launch.';
+        msg.style.color = '#4ADE80';
+        btn.textContent = 'Join Waitlist';
+        btn.disabled = false;
+      }, 1200);
+    }
+
+    // Enter key on waitlist input
+    document.getElementById('waitlist-email').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleWaitlist();
+    });
+
+    // ── Navbar scroll shadow ──────────────────────────────────
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('nav');
+      nav.style.boxShadow = window.scrollY > 20 ? '0 2px 20px rgba(11,18,32,0.08)' : '';
+    });
+  </script>
+</body>
+</html>
