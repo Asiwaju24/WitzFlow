@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WitzFlow — Academic Workflow Automation</title>
+<meta name="description" content="WitzFlow automates academic operations — AI grading, QR attendance, plagiarism detection, and institutional analytics for African tertiary institutions."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+:root{
+  --bg:        #0a0c10;
+  --bg-1:      #0f1218;
+  --bg-2:      #141820;
+  --bg-3:      #1a1f2a;
+  --bg-card:   #111419;
+  --border:    rgba(255,255,255,0.07);
+  --border-2:  rgba(255,255,255,0.12);
+  --text:      #e8eaf0;
+  --text-2:    #8b92a5;
+  --text-3:    #545d72;
+  --accent:    #4f7dff;
+  --accent-2:  #2d5ce8;
+  --accent-dim:rgba(79,125,255,0.12);
+  --accent-glow:rgba(79,125,255,0.25);
+  --green:     #22d3a0;
+  --green-dim: rgba(34,211,160,0.1);
+  --amber:     #f59e0b;
+  --amber-dim: rgba(245,158,11,0.1);
+  --red:       #f87171;
+  --red-dim:   rgba(248,113,113,0.1);
+  --purple:    #a78bfa;
+  --purple-dim:rgba(167,139,250,0.1);
+
+  /* Grid lines - the automation/spreadsheet signature */
+  --gl:        rgba(79,125,255,0.055);
+  --gl-strong: rgba(79,125,255,0.1);
+
+  --r:  6px;
+  --r2: 12px;
+  --r3: 18px;
+  --font:  'Outfit', sans-serif;
+  --mono:  'Space Mono', monospace;
+  --grotesk: 'Space Grotesk', sans-serif;
+}
+
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+  line-height:1.6;
+}
+
+/* ── GRID SIGNATURE ─────────────────────────────── */
+.grid-field{
+  position:relative;
+}
+.grid-field::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl) 1px,transparent 1px);
+  background-size:52px 52px;
+  pointer-events:none;z-index:0;
+}
+/* thick every-4th line like a spreadsheet */
+.grid-field::after{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl-strong) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl-strong) 1px,transparent 1px);
+  background-size:208px 208px;
+  pointer-events:none;z-index:0;
+}
+
+/* row-number strip  */
+.row-numbers{
+  position:absolute;top:0;left:0;bottom:0;width:38px;
+  border-right:1px solid var(--gl-strong);
+  background:rgba(79,125,255,0.025);
+  display:flex;flex-direction:column;
+  padding-top:60px;
+  pointer-events:none;z-index:1;
+  overflow:hidden;
+}
+.row-numbers span{
+  font-family:var(--mono);font-size:9px;
+  color:var(--text-3);text-align:center;
+  height:52px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+/* ── NAV ────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:62px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 6%;
+  background:rgba(10,12,16,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+  font-family:var(--grotesk);font-size:1.15rem;font-weight:700;
+  color:var(--text);
+}
+.logo-mark{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),#7c9fff);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;
+  letter-spacing:-0.5px;
+}
+.nav-logo em{font-style:normal;color:var(--accent);}
+
+.nav-links{
+  display:flex;align-items:center;gap:2rem;list-style:none;
+}
+.nav-links a{
+  font-size:0.875rem;font-weight:500;
+  color:var(--text-2);text-decoration:none;
+  transition:color .2s;
+  font-family:var(--grotesk);
+}
+.nav-links a:hover{color:var(--text);}
+
+.nav-actions{display:flex;align-items:center;gap:10px;}
+
+.btn-outline{
+  font-size:0.82rem;font-weight:600;
+  color:var(--text-2);text-decoration:none;
+  padding:7px 16px;border-radius:var(--r);
+  border:1px solid var(--border-2);
+  font-family:var(--grotesk);
+  transition:all .2s;
+}
+.btn-outline:hover{color:var(--text);border-color:var(--accent);background:var(--accent-dim);}
+
+.btn-primary{
+  font-size:0.82rem;font-weight:700;
+  color:#fff;text-decoration:none;
+  padding:8px 18px;border-radius:var(--r);
+  background:var(--accent);
+  border:none;cursor:pointer;
+  font-family:var(--grotesk);
+  transition:all .2s;letter-spacing:0.01em;
+}
+.btn-primary:hover{background:var(--accent-2);transform:translateY(-1px);box-shadow:0 4px 16px var(--accent-glow);}
+
+.burger{display:none;flex-direction:column;gap:4px;cursor:pointer;border:none;background:none;padding:4px;}
+.burger span{display:block;width:20px;height:2px;background:var(--text-2);border-radius:2px;}
+
+/* ── HERO ────────────────────────────────────────── */
+#hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:100px 6% 80px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+#hero::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(79,125,255,0.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,125,255,0.06) 1px,transparent 1px);
+  background-size:52px 52px;
+  z-index:0;
+}
+#hero::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(79,125,255,0.11) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,125,255,0.11) 1px,transparent 1px);
+  background-size:208px 208px;
+  z-index:0;
+}
+/* radial fade so grid fades to bg */
+.hero-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 75% 70% at 50% 50%,transparent 0%,var(--bg) 85%);
+  z-index:1;
+}
+
+/* left row-strip */
+.hero-rows{
+  position:absolute;top:0;left:0;bottom:0;width:36px;
+  border-right:1px solid rgba(79,125,255,0.12);
+  background:rgba(79,125,255,0.02);
+  z-index:2;
+  display:flex;flex-direction:column;padding-top:62px;overflow:hidden;
+}
+.hero-rows span{
+  font-family:var(--mono);font-size:9px;color:rgba(79,125,255,0.3);
+  text-align:center;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+.hero-content{position:relative;z-index:3;max-width:780px;}
+
+.hero-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:0.7rem;font-weight:400;
+  color:var(--accent);letter-spacing:0.06em;
+  background:var(--accent-dim);
+  border:1px solid rgba(79,125,255,0.25);
+  padding:6px 14px;border-radius:100px;
+  margin-bottom:32px;
+}
+.hero-pill-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--accent);
+  animation:blink 2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.hero-h1{
+  font-family:var(--grotesk);
+  font-size:clamp(2.6rem,5.8vw,4.2rem);
+  font-weight:700;line-height:1.08;
+  letter-spacing:-0.035em;
+  color:var(--text);
+  margin-bottom:22px;
+}
+.hero-h1 strong{
+  background:linear-gradient(135deg,#fff 0%,var(--accent) 60%,#a78bfa 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:block;
+}
+
+.hero-sub{
+  font-size:1.05rem;color:var(--text-2);
+  max-width:540px;margin:0 auto 40px;
+  line-height:1.75;font-weight:300;
+}
+
+.hero-btns{
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;flex-wrap:wrap;margin-bottom:64px;
+}
+.hero-btn-a{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:13px 28px;border-radius:var(--r2);
+  font-family:var(--grotesk);font-weight:700;font-size:0.95rem;
+  text-decoration:none;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;
+  box-shadow:0 0 32px var(--accent-glow);
+  transition:all .2s;letter-spacing:0.01em;
+}
+.hero-btn-a:hover{background:var(--accent-2);transform:translateY(-2px);box-shadow:0 4px 40px var(--accent-glow);}
+.hero-btn-b{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 24px;border-radius:var(--r2);
+  font-family:var(--grotesk);font-weight:600;font-size:0.95rem;
+  text-decoration:none;
+  color:var(--text-2);
+  border:1px solid var(--border-2);
+  background:transparent;
+  transition:all .2s;
+}
+.hero-btn-b:hover{color:var(--text);border-color:var(--text-3);}
+
+/* ── HERO DASHBOARD MOCKUP ───────────────────────── */
+.hero-mockup{
+  position:relative;z-index:3;
+  width:100%;max-width:900px;
+  margin:0 auto;
+  border-radius:var(--r3);
+  border:1px solid var(--border-2);
+  overflow:hidden;
+  background:var(--bg-1);
+  box-shadow:0 0 0 1px var(--border),0 40px 80px rgba(0,0,0,0.6),0 0 80px rgba(79,125,255,0.07);
+}
+
+.mock-bar{
+  height:38px;background:var(--bg-2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 14px;gap:6px;
+}
+.m-dot{width:10px;height:10px;border-radius:50%;}
+.m-dot.r{background:#ff5f56;} .m-dot.y{background:#febc2e;} .m-dot.g{background:#28c840;}
+.mock-title{
+  flex:1;text-align:center;
+  font-family:var(--mono);font-size:10px;color:var(--text-3);
+}
+
+.mock-tabs{
+  display:flex;background:var(--bg-2);
+  border-bottom:1px solid var(--border);
+  padding:0 14px;gap:2px;
+}
+.m-tab{
+  font-family:var(--mono);font-size:10px;
+  padding:7px 14px;color:var(--text-3);cursor:pointer;
+  border-bottom:2px solid transparent;
+}
+.m-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+
+.mock-fbar{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 14px;background:var(--bg-1);
+  border-bottom:1px solid var(--border);
+}
+.m-cell{
+  background:var(--bg-2);border:1px solid var(--border-2);
+  border-radius:4px;padding:3px 8px;
+  font-family:var(--mono);font-size:10px;
+  color:var(--accent);font-weight:700;min-width:44px;text-align:center;
+}
+.m-formula{
+  flex:1;background:var(--bg-2);border:1px solid var(--border);
+  border-radius:4px;padding:3px 10px;
+  font-family:var(--mono);font-size:10px;color:var(--text-3);
+}
+
+.mock-table{width:100%;border-collapse:collapse;font-size:11px;}
+.mock-table th{
+  background:var(--bg-2);color:var(--text-3);
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:0.05em;
+  padding:7px 12px;border:1px solid var(--border);text-align:left;
+  white-space:nowrap;
+}
+.mock-table th:first-child{width:32px;text-align:center;background:var(--bg-3);}
+.mock-table td{
+  padding:8px 12px;border:1px solid rgba(255,255,255,0.04);
+  font-size:10.5px;color:var(--text-2);white-space:nowrap;
+}
+.mock-table td:first-child{
+  background:var(--bg-2);color:var(--text-3);
+  font-family:var(--mono);font-size:9px;text-align:center;
+  border-color:var(--border);
+}
+.mock-table tr:hover td:not(:first-child){background:rgba(79,125,255,0.04);}
+.mock-hl td:not(:first-child){background:rgba(79,125,255,0.07)!important;}
+
+.chip{
+  display:inline-flex;align-items:center;gap:3px;
+  padding:2px 7px;border-radius:100px;
+  font-size:9px;font-weight:700;font-family:var(--grotesk);letter-spacing:0.03em;
+}
+.chip.g{background:var(--green-dim);color:var(--green);}
+.chip.a{background:var(--amber-dim);color:var(--amber);}
+.chip.r{background:var(--red-dim);color:var(--red);}
+.chip.b{background:var(--accent-dim);color:var(--accent);}
+.chip.p{background:var(--purple-dim);color:var(--purple);}
+
+/* ── SECTIONS ────────────────────────────────────── */
+section{padding:100px 6%;}
+.inner{max-width:1120px;margin:0 auto;}
+
+.eyebrow{
+  font-family:var(--mono);font-size:0.68rem;font-weight:700;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:14px;
+}
+.s-title{
+  font-family:var(--grotesk);
+  font-size:clamp(1.9rem,3.8vw,2.8rem);
+  font-weight:700;line-height:1.12;
+  letter-spacing:-0.03em;color:var(--text);
+  margin-bottom:18px;
+}
+.s-title em{font-style:normal;color:var(--accent);}
+.s-lead{
+  font-size:0.975rem;color:var(--text-2);
+  max-width:520px;line-height:1.8;font-weight:300;
+}
+
+/* ── FEATURES ────────────────────────────────────── */
+#features{background:var(--bg);position:relative;}
+#features .inner{position:relative;z-index:1;}
+#features::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(90deg,var(--gl) 1px,transparent 1px);
+  background-size:25% 100%;pointer-events:none;
+}
+
+.feat-hd{margin-bottom:64px;}
+
+.feat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border:1px solid var(--border);border-radius:var(--r3);overflow:hidden;
+  background:var(--border);gap:1px;
+}
+
+.feat-card{
+  background:var(--bg-1);padding:32px 28px;
+  position:relative;transition:background .25s;
+}
+.feat-card:hover{background:var(--bg-2);}
+
+.f-num{
+  position:absolute;top:0;right:0;
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  color:var(--text-3);background:var(--bg-3);
+  padding:4px 9px;
+  border-bottom-left-radius:8px;
+  border:1px solid var(--border);border-top:none;border-right:none;
+}
+
+.f-icon{
+  width:42px;height:42px;border-radius:10px;
+  background:var(--accent-dim);border:1px solid rgba(79,125,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:18px;
+}
+.f-name{
+  font-family:var(--grotesk);font-size:0.98rem;font-weight:700;
+  color:var(--text);margin-bottom:10px;
+}
+.f-desc{font-size:0.84rem;color:var(--text-2);line-height:1.7;}
+.f-mono{
+  display:inline-block;margin-top:14px;
+  font-family:var(--mono);font-size:0.62rem;
+  color:var(--accent);background:var(--accent-dim);
+  padding:3px 8px;border-radius:4px;letter-spacing:0.04em;
+}
+
+.feat-card.span2{grid-column:span 2;}
+.feat-card.span2 .f-inner{display:flex;gap:28px;align-items:flex-start;}
+.feat-card.span2 .f-text{flex:1;}
+.feat-card.span2 .f-visual{flex:1;}
+
+/* AI grade mini-demo */
+.grade-demo{
+  background:var(--bg-2);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+}
+.gd-header{
+  font-family:var(--mono);font-size:9px;color:var(--text-3);
+  margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+.gd-row{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.gd-row:last-of-type{border:none;}
+.gd-label{font-size:10px;color:var(--text-2);min-width:110px;font-family:var(--grotesk);}
+.gd-bar{flex:1;height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden;}
+.gd-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--purple));}
+.gd-score{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text);min-width:36px;text-align:right;}
+.gd-total{
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.gd-total-label{font-size:10px;color:var(--text-3);font-family:var(--mono);}
+.gd-total-score{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--accent);}
+
+/* ── HOW IT WORKS ────────────────────────────────── */
+#how{background:var(--bg-1);position:relative;}
+#how::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl) 1px,transparent 1px);
+  background-size:52px 52px;pointer-events:none;
+}
+#how::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl-strong) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl-strong) 1px,transparent 1px);
+  background-size:208px 208px;pointer-events:none;
+}
+
+.how-steps{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--r3);
+  overflow:hidden;margin-top:60px;
+  position:relative;z-index:1;
+}
+.how-step{background:var(--bg-card);padding:30px 24px;}
+.step-n{
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--accent);background:var(--accent-dim);
+  border:1px solid rgba(79,125,255,0.2);
+  width:30px;height:30px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+}
+.step-icon{font-size:1.6rem;margin-bottom:14px;}
+.step-title{
+  font-family:var(--grotesk);font-size:0.93rem;font-weight:700;
+  color:var(--text);margin-bottom:10px;
+}
+.step-desc{font-size:0.82rem;color:var(--text-2);line-height:1.65;}
+
+/* ── INSTITUTIONS ────────────────────────────────── */
+#institutions{background:var(--bg);}
+
+.inst-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:var(--r3);
+  overflow:hidden;margin-top:60px;
+}
+.inst-card{
+  background:var(--bg-1);padding:34px 30px;
+  display:flex;gap:20px;
+  transition:background .25s;
+}
+.inst-card:hover{background:var(--bg-2);}
+.inst-icon{
+  font-size:1.6rem;flex-shrink:0;
+  width:50px;height:50px;border-radius:var(--r);
+  border:1px solid var(--border);background:var(--bg-3);
+  display:flex;align-items:center;justify-content:center;
+}
+.inst-title{
+  font-family:var(--grotesk);font-size:1rem;font-weight:700;
+  color:var(--text);margin-bottom:8px;
+}
+.inst-desc{font-size:0.84rem;color:var(--text-2);line-height:1.7;}
+.inst-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
+.inst-tag{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  color:var(--accent);background:var(--accent-dim);
+  padding:3px 8px;border-radius:4px;letter-spacing:0.04em;
+}
+
+/* ── PRICING ─────────────────────────────────────── */
+#pricing{background:var(--bg-1);position:relative;}
+#pricing::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl) 1px,transparent 1px);
+  background-size:52px 52px;pointer-events:none;
+}
+
+.price-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:20px;margin-top:60px;position:relative;z-index:1;
+}
+.price-card{
+  background:var(--bg-card);
+  border:1px solid var(--border);border-radius:var(--r3);
+  padding:34px 28px;position:relative;
+  transition:transform .2s,box-shadow .2s;
+}
+.price-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.4);}
+.price-card.feat-price{
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px var(--accent),0 0 40px var(--accent-glow);
+}
+.price-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  color:#fff;background:var(--accent);
+  padding:4px 14px;border-radius:100px;letter-spacing:0.06em;
+  white-space:nowrap;
+}
+.p-tier{
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--text-3);letter-spacing:0.1em;margin-bottom:10px;
+}
+.p-price{
+  font-family:var(--grotesk);font-size:2.3rem;font-weight:700;
+  color:var(--text);line-height:1;margin-bottom:6px;letter-spacing:-0.03em;
+}
+.p-price span{font-size:0.9rem;font-weight:400;color:var(--text-3);}
+.p-desc{font-size:0.82rem;color:var(--text-2);margin-bottom:26px;line-height:1.6;}
+.p-divider{height:1px;background:var(--border);margin-bottom:22px;}
+.p-list{list-style:none;margin-bottom:30px;}
+.p-list li{
+  display:flex;align-items:flex-start;gap:9px;
+  font-size:0.83rem;color:var(--text-2);
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.p-list li:last-child{border:none;}
+.p-list li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px;}
+.p-list li.off{color:var(--text-3);}
+.p-list li.off::before{content:'—';color:var(--text-3);}
+.p-btn{
+  display:block;width:100%;padding:11px 20px;border-radius:var(--r);
+  text-align:center;font-weight:700;font-size:0.875rem;
+  font-family:var(--grotesk);text-decoration:none;cursor:pointer;border:none;
+  transition:all .2s;letter-spacing:0.01em;
+}
+.p-btn.filled{background:var(--accent);color:#fff;}
+.p-btn.filled:hover{background:var(--accent-2);}
+.p-btn.ghost{background:var(--bg-2);color:var(--text-2);border:1px solid var(--border-2);}
+.p-btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── ABOUT ───────────────────────────────────────── */
+#about{background:var(--bg);}
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:80px;align-items:center;margin-top:60px;
+}
+.a-quote{
+  font-family:var(--grotesk);font-size:1.25rem;font-weight:600;
+  color:var(--text);line-height:1.5;margin-bottom:24px;
+  padding-left:22px;
+  border-left:3px solid var(--accent);
+}
+.a-quote em{font-style:italic;color:var(--accent);}
+.a-bio{font-size:0.9rem;color:var(--text-2);line-height:1.8;margin-bottom:14px;}
+
+.founder-card{
+  display:flex;align-items:center;gap:14px;
+  padding:18px;margin-top:28px;
+  background:var(--bg-1);border:1px solid var(--border);
+  border-radius:var(--r2);
+}
+.f-ava{
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--grotesk);font-size:1.1rem;font-weight:700;color:#fff;
+}
+.f-name{font-weight:700;color:var(--text);font-size:0.9rem;}
+.f-role{font-size:0.75rem;color:var(--text-3);margin-top:2px;}
+.f-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.f-tag{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  color:var(--accent);background:var(--accent-dim);
+  padding:2px 7px;border-radius:4px;
+}
+
+/* Spreadsheet stat card */
+.stat-sheet{
+  background:var(--bg-1);border:1px solid var(--border);
+  border-radius:var(--r3);overflow:hidden;
+}
+.ss-top{
+  background:var(--bg-2);border-bottom:1px solid var(--border);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:8px;
+}
+.ss-top-title{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+.stat-cells{display:grid;grid-template-columns:1fr 1fr;}
+.s-cell{
+  padding:28px 22px;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.s-cell:nth-child(2n){border-right:none;}
+.s-cell:nth-last-child(-n+2){border-bottom:none;}
+.s-row-tag{
+  position:absolute;top:7px;right:10px;
+  font-family:var(--mono);font-size:8px;color:var(--text-3);
+}
+.s-num{
+  font-family:var(--grotesk);font-size:2rem;font-weight:700;
+  color:var(--text);line-height:1;margin-bottom:4px;
+  letter-spacing:-0.03em;
+}
+.s-num em{font-style:normal;color:var(--accent);}
+.s-label{font-size:0.77rem;color:var(--text-2);}
+
+/* ── CTA ─────────────────────────────────────────── */
+#cta{
+  background:var(--bg-1);
+  position:relative;overflow:hidden;
+  padding:110px 6%;
+}
+#cta::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+#cta::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(var(--gl-strong) 1px,transparent 1px),
+    linear-gradient(90deg,var(--gl-strong) 1px,transparent 1px);
+  background-size:208px 208px;
+}
+/* glow orb */
+.cta-orb{
+  position:absolute;top:50%;left:50%;
+  width:600px;height:600px;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(79,125,255,0.1) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+.cta-inner{
+  max-width:640px;margin:0 auto;text-align:center;
+  position:relative;z-index:1;
+}
+.cta-label{
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  letter-spacing:0.1em;color:var(--accent);margin-bottom:20px;
+}
+.cta-h2{
+  font-family:var(--grotesk);
+  font-size:clamp(1.9rem,4vw,2.8rem);
+  font-weight:700;color:var(--text);
+  line-height:1.12;letter-spacing:-0.03em;margin-bottom:18px;
+}
+.cta-h2 em{font-style:normal;color:var(--accent);}
+.cta-sub{font-size:0.975rem;color:var(--text-2);margin-bottom:42px;font-weight:300;}
+
+.wl-form{
+  display:flex;gap:10px;max-width:460px;margin:0 auto;
+}
+.wl-input{
+  flex:1;padding:13px 16px;
+  background:var(--bg-2);
+  border:1px solid var(--border-2);border-radius:var(--r);
+  color:var(--text);font-size:0.9rem;font-family:var(--font);
+  outline:none;transition:border-color .2s;
+}
+.wl-input::placeholder{color:var(--text-3);}
+.wl-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+.wl-btn{
+  padding:12px 22px;border-radius:var(--r);
+  background:var(--accent);color:#fff;border:none;cursor:pointer;
+  font-weight:700;font-size:0.875rem;font-family:var(--grotesk);
+  white-space:nowrap;transition:all .2s;letter-spacing:0.01em;
+}
+.wl-btn:hover{background:var(--accent-2);box-shadow:0 4px 16px var(--accent-glow);}
+.wl-note{
+  font-family:var(--mono);font-size:10px;
+  color:var(--text-3);margin-top:14px;
+}
+
+/* ── FOOTER ──────────────────────────────────────── */
+footer{
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  padding:64px 6% 32px;
+}
+.foot-grid{
+  max-width:1120px;margin:0 auto;
+  display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr;
+  gap:60px;margin-bottom:48px;
+}
+.foot-brand{
+  font-family:var(--grotesk);font-size:1.1rem;font-weight:700;
+  color:var(--text);margin-bottom:12px;
+}
+.foot-brand em{font-style:normal;color:var(--accent);}
+.foot-desc{font-size:0.83rem;color:var(--text-3);line-height:1.7;margin-bottom:20px;}
+.foot-socials{display:flex;gap:8px;}
+.foot-soc{
+  width:32px;height:32px;border-radius:7px;
+  border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-3);text-decoration:none;font-size:12px;
+  transition:all .2s;
+}
+.foot-soc:hover{border-color:var(--accent);color:var(--accent);}
+.foot-col-title{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:16px;
+}
+.foot-links{list-style:none;}
+.foot-links li{margin-bottom:10px;}
+.foot-links a{
+  font-size:0.83rem;color:var(--text-3);text-decoration:none;
+  transition:color .2s;
+}
+.foot-links a:hover{color:var(--text);}
+.foot-bottom{
+  max-width:1120px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:24px;border-top:1px solid var(--border);
+}
+.foot-copy{font-size:0.78rem;color:var(--text-3);}
+.foot-family{display:flex;align-items:center;gap:6px;}
+.fam-label{font-family:var(--mono);font-size:9px;color:var(--text-3);margin-right:4px;}
+.fam-pill{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:3px 10px;border-radius:100px;
+  border:1px solid var(--border);color:var(--text-3);
+  text-decoration:none;
+}
+.fam-pill.active{border-color:rgba(79,125,255,0.4);color:var(--accent);}
+.fam-pill:hover{color:var(--text);}
+
+/* ── REVEAL ANIM ─────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.in{opacity:1;transform:none;}
+.reveal.d1{transition-delay:.1s;} .reveal.d2{transition-delay:.2s;} .reveal.d3{transition-delay:.3s;}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media(max-width:900px){
+  .nav-links{display:none;}
+  .burger{display:flex;}
+  .feat-grid{grid-template-columns:1fr;}
+  .feat-card.span2{grid-column:span 1;}
+  .feat-card.span2 .f-inner{flex-direction:column;}
+  .how-steps{grid-template-columns:1fr 1fr;gap:1px;}
+  .inst-grid{grid-template-columns:1fr;}
+  .price-grid{grid-template-columns:1fr;}
+  .about-grid{grid-template-columns:1fr;gap:40px;}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:40px;}
+  .wl-form{flex-direction:column;}
+}
+@media(max-width:600px){
+  .how-steps{grid-template-columns:1fr;}
+  .stat-cells{grid-template-columns:1fr;}
+  .s-cell{border-right:none!important;}
+  .s-cell:nth-last-child(-n+2){border-bottom:1px solid var(--border)!important;}
+  .s-cell:last-child{border-bottom:none!important;}
+  .foot-grid{grid-template-columns:1fr;gap:32px;}
+  .foot-bottom{flex-direction:column;gap:12px;text-align:center;}
+  .hero-rows{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-logo">
+    <div class="logo-mark">Wf</div>
+    Witz<em>Flow</em>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#institutions">Institutions</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="https://witz-web.vercel.app/" class="btn-outline" target="_blank">WitzClass ↗</a>
+    <button class="btn-primary" onclick="scrollTo('cta')">Join Waitlist</button>
+  </div>
+  <button class="burger" onclick="toggleNav()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-vignette"></div>
+  <div class="hero-rows" aria-hidden="true">
+    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+    <span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+    <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+    <span>16</span><span>17</span><span>18</span>
+  </div>
+
+  <div class="hero-content reveal">
+    <div class="hero-pill">
+      <span class="hero-pill-dot"></span>
+      COMING SOON — JOIN THE WAITLIST
+    </div>
+    <h1 class="hero-h1">
+      Academic operations,<br/>
+      <strong>finally automated.</strong>
+    </h1>
+    <p class="hero-sub">
+      WitzFlow handles grading, attendance, plagiarism detection, and reporting so Nigerian lecturers can spend their time on what actually matters — teaching.
+    </p>
+    <div class="hero-btns">
+      <button class="hero-btn-a" onclick="scrollTo('cta')">
+        Join Waitlist →
+      </button>
+      <a href="#features" class="hero-btn-b">See Features</a>
+    </div>
+
+    <!-- SPREADSHEET DASHBOARD MOCKUP -->
+    <div class="hero-mockup">
+      <div class="mock-bar">
+        <div class="m-dot r"></div><div class="m-dot y"></div><div class="m-dot g"></div>
+        <div class="mock-title">WitzFlow — CSC 401 · Grading Dashboard</div>
+      </div>
+      <div class="mock-tabs">
+        <div class="m-tab on">Submissions</div>
+        <div class="m-tab">Attendance</div>
+        <div class="m-tab">Analytics</div>
+        <div class="m-tab">At-Risk</div>
+      </div>
+      <div class="mock-fbar">
+        <div class="m-cell">D7</div>
+        <div class="m-formula">=AI_GRADE(C7, rubric="CSC401-R2", anonymize=TRUE) → 87</div>
+      </div>
+      <table class="mock-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student ID</th>
+            <th>Submission</th>
+            <th>AI Score</th>
+            <th>Final Score</th>
+            <th>Status</th>
+            <th>Integrity</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td><td>STU-0041</td><td>algorithm_analysis.pdf</td>
+            <td>87 / 100</td><td>85 / 100</td>
+            <td><span class="chip g">✓ Graded</span></td>
+            <td><span class="chip g">Clean</span></td><td>2d ago</td>
+          </tr>
+          <tr class="mock-hl">
+            <td>2</td><td>STU-0057</td><td>data_structures.pdf</td>
+            <td>91 / 100</td><td>91 / 100</td>
+            <td><span class="chip g">✓ Graded</span></td>
+            <td><span class="chip g">Clean</span></td><td>2d ago</td>
+          </tr>
+          <tr>
+            <td>3</td><td>STU-0023</td><td>os_essay.pdf</td>
+            <td>—</td><td>—</td>
+            <td><span class="chip b">⏳ Pending</span></td>
+            <td><span class="chip a">⚠ Review</span></td><td>1d ago</td>
+          </tr>
+          <tr>
+            <td>4</td><td>STU-0088</td><td>networking_report.pdf</td>
+            <td>44 / 100</td><td>44 / 100</td>
+            <td><span class="chip a">⚠ Late</span></td>
+            <td><span class="chip r">🚩 Flagged</span></td><td>3h ago</td>
+          </tr>
+          <tr>
+            <td>5</td><td>STU-0012</td><td>—</td>
+            <td>—</td><td>—</td>
+            <td><span class="chip r">✗ Missing</span></td>
+            <td>—</td><td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="inner">
+    <div class="feat-hd reveal">
+      <p class="eyebrow">// features</p>
+      <h2 class="s-title">Everything academic ops needs.<br/><em>Nothing it doesn't.</em></h2>
+      <p class="s-lead">Six automation pillars that eliminate the manual work killing lecturer productivity across African institutions.</p>
+    </div>
+
+    <div class="feat-grid reveal d1">
+
+      <div class="feat-card">
+        <span class="f-num">F01</span>
+        <div class="f-icon">📋</div>
+        <div class="f-name">Assignment Engine</div>
+        <p class="f-desc">Schedule assignments to auto-publish. Deadlines enforced, late submissions flagged, reminders sent — zero manual work from the lecturer.</p>
+        <span class="f-mono">CELERY_BEAT</span>
+      </div>
+
+      <div class="feat-card span2">
+        <span class="f-num">F02</span>
+        <div class="f-inner">
+          <div class="f-text">
+            <div class="f-icon">🤖</div>
+            <div class="f-name">AI-Assisted Grading</div>
+            <p class="f-desc">WitzFlow reads each submission against your rubric and produces a scored draft — per criterion, with written feedback. You review and publish. Grading time drops by 70%+.</p>
+            <span class="f-mono">GPT-4o-mini + RUBRIC ENGINE</span>
+          </div>
+          <div class="f-visual">
+            <div class="grade-demo">
+              <div class="gd-header">AI DRAFT · STU-0041 · CSC 401 Assignment 3</div>
+              <div class="gd-row">
+                <span class="gd-label">Argument Clarity</span>
+                <div class="gd-bar"><div class="gd-fill" style="width:88%"></div></div>
+                <span class="gd-score">22/25</span>
+              </div>
+              <div class="gd-row">
+                <span class="gd-label">Technical Accuracy</span>
+                <div class="gd-bar"><div class="gd-fill" style="width:84%"></div></div>
+                <span class="gd-score">21/25</span>
+              </div>
+              <div class="gd-row">
+                <span class="gd-label">References</span>
+                <div class="gd-bar"><div class="gd-fill" style="width:80%"></div></div>
+                <span class="gd-score">16/20</span>
+              </div>
+              <div class="gd-row">
+                <span class="gd-label">Originality</span>
+                <div class="gd-bar"><div class="gd-fill" style="width:93%"></div></div>
+                <span class="gd-score">28/30</span>
+              </div>
+              <div class="gd-total">
+                <span class="gd-total-label">TOTAL DRAFT</span>
+                <span class="gd-total-score">87 / 100</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feat-card">
+        <span class="f-num">F03</span>
+        <div class="f-icon">📷</div>
+        <div class="f-name">QR Attendance</div>
+        <p class="f-desc">Lecturer starts a session — a QR appears on the projector. Students scan once and they're marked. A 6-digit OTP covers low-signal classrooms.</p>
+        <span class="f-mono">HMAC · OTP_FALLBACK</span>
+      </div>
+
+      <div class="feat-card">
+        <span class="f-num">F04</span>
+        <div class="f-icon">🛡️</div>
+        <div class="f-name">Academic Integrity</div>
+        <p class="f-desc">Every submission is scanned for plagiarism using semantic similarity — not just exact match — and scored for AI-generated content. Flags surface in a review queue.</p>
+        <span class="f-mono">SENTENCE_TRANSFORMERS</span>
+      </div>
+
+      <div class="feat-card">
+        <span class="f-num">F05</span>
+        <div class="f-icon">📊</div>
+        <div class="f-name">Analytics Dashboard</div>
+        <p class="f-desc">Grade trends, attendance rates, engagement scores, and submission patterns — in one institutional dashboard, updated in real time.</p>
+        <span class="f-mono">SCIKIT-LEARN · RECHARTS</span>
+      </div>
+
+      <div class="feat-card">
+        <span class="f-num">F06</span>
+        <div class="f-icon">⚠️</div>
+        <div class="f-name">At-Risk Detection</div>
+        <p class="f-desc">A predictive model monitors attendance, grades, late submissions, and engagement. Students drifting toward failure are flagged before it's too late to intervene.</p>
+        <span class="f-mono">GBM_RISK_MODEL</span>
+      </div>
+
+      <div class="feat-card">
+        <span class="f-num">F07</span>
+        <div class="f-icon">📧</div>
+        <div class="f-name">Weekly Auto-Reports</div>
+        <p class="f-desc">Every Monday, WitzFlow generates a PDF report per student — grades, attendance, feedback — and delivers it to their inbox. Zero effort from the lecturer.</p>
+        <span class="f-mono">REPORTLAB · CELERY_BEAT</span>
+      </div>
+
+      <div class="feat-card">
+        <span class="f-num">F08</span>
+        <div class="f-icon">🎭</div>
+        <div class="f-name">Anonymous Grading</div>
+        <p class="f-desc">Toggle anonymisation per assignment. Student names are hidden during review — only revealed after grades are confirmed. Bias removed by design.</p>
+        <span class="f-mono">FAIRNESS_LAYER</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="inner" style="position:relative;z-index:1;">
+    <div class="reveal">
+      <p class="eyebrow">// workflow</p>
+      <h2 class="s-title">From setup to <em>automated</em><br/>in four steps</h2>
+      <p class="s-lead">WitzFlow is built for adoption without a change-management project. One admin, one afternoon, live for the semester.</p>
+    </div>
+    <div class="how-steps reveal d1">
+      <div class="how-step">
+        <div class="step-n">01</div>
+        <div class="step-icon">🏛️</div>
+        <div class="step-title">Institution Registers</div>
+        <p class="step-desc">Admin registers the institution, sets up departments and the academic year, and onboards lecturers with a unique institution code. Under 15 minutes.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-n">02</div>
+        <div class="step-icon">👨‍🏫</div>
+        <div class="step-title">Lecturer Configures Courses</div>
+        <p class="step-desc">Lecturer creates courses, builds rubrics, and enrolls students via CSV upload or join code. Assignments are scheduled for the semester in one session.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-n">03</div>
+        <div class="step-icon">🎒</div>
+        <div class="step-title">Students Submit & Attend</div>
+        <p class="step-desc">Students submit work digitally and scan QR codes to mark attendance. Every action is timestamped, tracked, and visible to the lecturer instantly.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-n">04</div>
+        <div class="step-icon">⚙️</div>
+        <div class="step-title">WitzFlow Handles the Rest</div>
+        <p class="step-desc">AI grades drafts, integrity checks run, weekly reports generate and send, and at-risk students surface — all before the semester ends badly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR INSTITUTIONS -->
+<section id="institutions">
+  <div class="inner">
+    <div class="reveal">
+      <p class="eyebrow">// target_market</p>
+      <h2 class="s-title">Built for every level<br/>of <em>institution</em></h2>
+      <p class="s-lead">From a single department going digital to a multi-faculty university scaling across campuses — WitzFlow adapts.</p>
+    </div>
+    <div class="inst-grid reveal d1">
+      <div class="inst-card">
+        <div class="inst-icon">🎓</div>
+        <div>
+          <div class="inst-title">Universities & Polytechnics</div>
+          <p class="inst-desc">Multi-department support, faculty-level analytics, bulk enrollment from institutional student registers, and a dashboard visible to registrars and HODs.</p>
+          <div class="inst-tags">
+            <span class="inst-tag">MULTI_DEPT</span>
+            <span class="inst-tag">FACULTY_ANALYTICS</span>
+            <span class="inst-tag">REGISTRAR_VIEW</span>
+          </div>
+        </div>
+      </div>
+      <div class="inst-card">
+        <div class="inst-icon">🏫</div>
+        <div>
+          <div class="inst-title">Colleges of Education</div>
+          <p class="inst-desc">Built for Nigerian realities — offline attendance fallback, low-bandwidth uploads, and SMS deadline reminders where email is unreliable.</p>
+          <div class="inst-tags">
+            <span class="inst-tag">OFFLINE_OTP</span>
+            <span class="inst-tag">SMS_ALERTS</span>
+            <span class="inst-tag">LOW_BANDWIDTH</span>
+          </div>
+        </div>
+      </div>
+      <div class="inst-card">
+        <div class="inst-icon">📚</div>
+        <div>
+          <div class="inst-title">Secondary Schools</div>
+          <p class="inst-desc">Subject teachers benefit from AI grading and attendance even at secondary level. Simple setup, no IT department required. Works from one laptop.</p>
+          <div class="inst-tags">
+            <span class="inst-tag">SIMPLE_SETUP</span>
+            <span class="inst-tag">NO_IT_NEEDED</span>
+            <span class="inst-tag">AI_GRADING</span>
+          </div>
+        </div>
+      </div>
+      <div class="inst-card">
+        <div class="inst-icon">🏢</div>
+        <div>
+          <div class="inst-title">Corporate Training Orgs</div>
+          <p class="inst-desc">Run assessments, track completion, measure engagement, and auto-generate compliance reports across large employee cohorts. White-label available.</p>
+          <div class="inst-tags">
+            <span class="inst-tag">WHITE_LABEL</span>
+            <span class="inst-tag">COMPLIANCE_REPORTS</span>
+            <span class="inst-tag">BULK_COHORTS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="inner">
+    <div class="reveal" style="text-align:center;">
+      <p class="eyebrow">// pricing</p>
+      <h2 class="s-title">Scales with your<br/><em>institution's size</em></h2>
+      <p class="s-lead" style="margin:0 auto;">Transparent per-semester pricing. No surprise invoices. No per-feature unlocks.</p>
+    </div>
+    <div class="price-grid reveal d1">
+
+      <div class="price-card">
+        <div class="p-tier">STARTER</div>
+        <div class="p-price">Free<span></span></div>
+        <p class="p-desc">For individual lecturers or small departments exploring WitzFlow.</p>
+        <div class="p-divider"></div>
+        <ul class="p-list">
+          <li>Up to 2 courses</li>
+          <li>Up to 60 students total</li>
+          <li>Assignment engine + QR attendance</li>
+          <li>Basic submission tracking</li>
+          <li class="off">AI-assisted grading</li>
+          <li class="off">Plagiarism detection</li>
+          <li class="off">Weekly auto-reports</li>
+          <li class="off">At-risk model</li>
+        </ul>
+        <button class="p-btn ghost" onclick="scrollTo('cta')">Join Waitlist</button>
+      </div>
+
+      <div class="price-card feat-price">
+        <div class="price-badge">MOST POPULAR</div>
+        <div class="p-tier">INSTITUTION</div>
+        <div class="p-price">₦150k<span> / semester</span></div>
+        <p class="p-desc">For a full department or faculty. Includes AI grading and analytics.</p>
+        <div class="p-divider"></div>
+        <ul class="p-list">
+          <li>Unlimited courses</li>
+          <li>Up to 500 students</li>
+          <li>Full assignment engine</li>
+          <li>QR attendance + OTP fallback</li>
+          <li>AI-assisted grading</li>
+          <li>Plagiarism + AI-content detection</li>
+          <li>Weekly auto-reports (PDF + email)</li>
+          <li>At-risk student model</li>
+        </ul>
+        <button class="p-btn filled" onclick="scrollTo('cta')">Join Waitlist</button>
+      </div>
+
+      <div class="price-card">
+        <div class="p-tier">ENTERPRISE</div>
+        <div class="p-price">Custom<span></span></div>
+        <p class="p-desc">For multi-faculty universities, school networks, or corporate training providers.</p>
+        <div class="p-divider"></div>
+        <ul class="p-list">
+          <li>Unlimited everything</li>
+          <li>Multi-campus / multi-institution</li>
+          <li>Custom integrations (SMS, LMS, SIS)</li>
+          <li>White-label deployment</li>
+          <li>Dedicated support SLA</li>
+          <li>Institutional analytics suite</li>
+          <li>On-premise deployment option</li>
+          <li>Staff training included</li>
+        </ul>
+        <button class="p-btn ghost" onclick="scrollTo('cta')">Contact Us</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="inner">
+    <div class="about-grid reveal">
+      <div>
+        <p class="eyebrow">// founder_story</p>
+        <blockquote class="a-quote">
+          "I built WitzClass to digitise assignment collection. I built WitzFlow because <em>the real problem is everything that happens after the submission.</em>"
+        </blockquote>
+        <p class="a-bio">Lecturers in Nigerian institutions manage classes of 200+ students, grade manually, track attendance on paper, and produce reports nobody reads. WitzFlow isn't a feature request — it's a response to a structural problem that wastes thousands of academic hours every semester across Africa.</p>
+        <p class="a-bio">WitzFlow is built by the same team behind WitzClass, as part of the Wizard Technology product family. The same infrastructure-first philosophy: if it doesn't solve a real problem at a Nigerian institution, it doesn't ship.</p>
+        <div class="founder-card">
+          <div class="f-ava">A</div>
+          <div>
+            <div class="f-name">Olaniyan Taslim</div>
+            <div class="f-role">Founder & CEO, Wizard Technology</div>
+            <div class="f-tags">
+              <span class="f-tag">Django</span>
+              <span class="f-tag">React</span>
+              <span class="f-tag">EdTech</span>
+              <span class="f-tag">AI Engineering</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal d2">
+        <div class="stat-sheet">
+          <div class="ss-top">
+            <span>📊</span>
+            <span class="ss-top-title">the_problem.xlsx — Nigerian Higher Education</span>
+          </div>
+          <div class="stat-cells">
+            <div class="s-cell">
+              <span class="s-row-tag">A1</span>
+              <div class="s-num">200<em>+</em></div>
+              <div class="s-label">Average students per Nigerian university lecturer</div>
+            </div>
+            <div class="s-cell">
+              <span class="s-row-tag">B1</span>
+              <div class="s-num">70<em>%</em></div>
+              <div class="s-label">Of institutions still using paper attendance</div>
+            </div>
+            <div class="s-cell">
+              <span class="s-row-tag">A2</span>
+              <div class="s-num">40<em>hrs</em></div>
+              <div class="s-label">Lost to manual grading per course per semester</div>
+            </div>
+            <div class="s-cell">
+              <span class="s-row-tag">B2</span>
+              <div class="s-num">$7.7<em>B</em></div>
+              <div class="s-label">African e-learning market projected by 2033</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-orb"></div>
+  <div class="cta-inner reveal">
+    <div class="cta-label">// join_waitlist</div>
+    <h2 class="cta-h2">Be first when<br/><em>WitzFlow goes live</em></h2>
+    <p class="cta-sub">Early institutions get 3 months free on the Institution plan and dedicated onboarding support.</p>
+    <div class="wl-form">
+      <input type="email" class="wl-input" id="wl-email" placeholder="your.institution@email.com"/>
+      <button class="wl-btn" onclick="handleWaitlist()">Join →</button>
+    </div>
+    <div class="wl-note" id="wl-msg">No spam. No credit card. Just early access.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <div class="foot-brand">Witz<em>Flow</em></div>
+      <p class="foot-desc">Academic workflow automation and analytics for African tertiary institutions. Part of the Wizard Technology product family alongside WitzClass.</p>
+      <div class="foot-socials">
+        <a href="https://github.com/Asiwaju24" class="foot-soc" target="_blank">⌨</a>
+        <a href="https://x.com/OlaniyanTaslim" class="foot-soc" target="_blank">𝕏</a>
+        <a href="https://www.linkedin.com/in/olaniyan-taslim-3a80212aa" class="foot-soc" target="_blank">in</a>
+      </div>
+    </div>
+    <div>
+      <div class="foot-col-title">Platform</div>
+      <ul class="foot-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#institutions">Institutions</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="foot-col-title">Company</div>
+      <ul class="foot-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#about">Founder</a></li>
+        <li><a href="https://witz-web.vercel.app/" target="_blank">WitzClass</a></li>
+        <li><a href="#">Roadmap</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="foot-col-title">Developers</div>
+      <ul class="foot-links">
+        <li><a href="#">API Docs (coming soon)</a></li>
+        <li><a href="https://github.com/Asiwaju24" target="_blank">GitHub</a></li>
+        <li><a href="#">SDK</a></li>
+        <li><a href="#">Changelog</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <div class="foot-copy">© 2026 WitzFlow · Wizard Technology. All rights reserved.</div>
+    <div class="foot-family">
+      <span class="fam-label">PRODUCTS:</span>
+      <a href="https://witz-web.vercel.app/" class="fam-pill" target="_blank">WitzClass</a>
+      <span class="fam-pill active">WitzFlow</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// Smooth scroll helper
+function scrollTo(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+
+// Nav scroll shadow
+window.addEventListener('scroll',()=>{
+  document.querySelector('nav').style.boxShadow=
+    window.scrollY>20?'0 1px 24px rgba(0,0,0,0.4)':'';
+});
+
+// Mobile nav
+let navOpen=false;
+function toggleNav(){
+  navOpen=!navOpen;
+  const nl=document.querySelector('.nav-links');
+  if(navOpen){
+    nl.style.cssText=`
+      display:flex;flex-direction:column;position:fixed;
+      top:62px;left:0;right:0;
+      background:rgba(10,12,16,0.98);
+      backdrop-filter:blur(20px);
+      padding:24px 6%;gap:1rem;
+      border-bottom:1px solid rgba(255,255,255,0.07);
+      z-index:199;
+    `;
+  } else {
+    nl.style.cssText='';
+  }
+}
+
+// Waitlist
+function handleWaitlist(){
+  const el=document.getElementById('wl-email');
+  const msg=document.getElementById('wl-msg');
+  const email=el.value.trim();
+  const re=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!email){msg.textContent='⚠ Enter your email address.';msg.style.color='#f59e0b';return;}
+  if(!re.test(email)){msg.textContent='⚠ Enter a valid email address.';msg.style.color='#f59e0b';return;}
+  const btn=document.querySelector('.wl-btn');
+  btn.textContent='...';btn.disabled=true;
+  setTimeout(()=>{
+    el.value='';
+    msg.textContent='✓ You\'re on the list. We\'ll reach out before launch.';
+    msg.style.color='#22d3a0';
+    btn.textContent='Join →';btn.disabled=false;
+  },1100);
+}
+document.getElementById('wl-email').addEventListener('keydown',e=>{
+  if(e.key==='Enter') handleWaitlist();
+});
+</script>
+</body>
+</html>
